@@ -23,124 +23,87 @@ To ensure maximum versatility and easy evaluation, the application is designed t
 
 ---
 
-## 🛠️ Technical Stack & Architecture
+## 🏗️ Architectural Approach & System Design
 
-- **Backend:** Python 3.11, FastAPI (Fast REST API framework), Pandas & NumPy (data cleaning, normalization, and business intelligence logic).
-- **Frontend:** HTML5, CSS3, Vanilla JavaScript. Features a responsive glassmorphic dashboard styled using the Outfits font family.
-- **Data Resilience Engine:** Automatic standardizations for:
-  * Inconsistent sector names (e.g., matching "energy", "Energy sector", "solar").
-  * Currency formats, missing values, and null counts.
-  * Mismatched dates or empty operational stages.
+The system follows a classic **decoupled frontend/backend architecture** to maintain separation of concerns, high scalability, and portability.
 
----
-
-## 📁 Project Structure
-
-```text
-Skylark_drone/
-├── backend/
-│   ├── ai_agent.py          # Chatbot logic, heuristics, and query parsing
-│   ├── data_normalizer.py   # Cleans and standardizes raw Excel/API datasets
-│   ├── main.py              # FastAPI application server and routes
-│   └── monday_client.py     # Monday.com GraphQL API client
-├── Deal funnel Data.xlsx    # Sales pipeline local mock data
-├── Work_Order_Tracker Data.xlsx # Work order tracker local mock data
-├── index.html               # Responsive Frontend dashboard
-├── DECISION_LOG.md          # Architectural decisions & assumptions
-└── README.md                # Project documentation (this file)
+```mermaid
+graph TD
+    A[Web Dashboard - Frontend] -->|REST API Requests| B[FastAPI Server - Backend]
+    B -->|GraphQL Queries| C[Monday.com GraphQL API]
+    B -->|Local Fallback / Preload| D[Local Excel Files]
+    B -->|Interactive Data Processing| E[Pandas Data Resilience Engine]
+    B -->|Context Formulation| F[BI Chatbot Agent]
 ```
 
----
+### 1. Backend: FastAPI + Pandas Data Resilience Engine
+* **FastAPI**: Provides a high-performance, asynchronous REST API layer with automatic request validation (Pydantic), low latency, and CORS support for standard cross-origin frontend queries.
+* **Pandas**: Used as the primary data normalization and query execution engine. Raw inputs from both Monday.com (JSON lists) and local files (Excel tables) are converted into structured DataFrames.
+* **BI Chatbot Agent (`ai_agent.py`)**: Uses deterministic heuristics, keyword classification, and regex-based routing to query Pandas DataFrames. This guarantees mathematical correctness, extremely low latency, and high resilience against hallucinations compared to raw LLM query parsing.
 
-## ⚙️ Installation & Local Setup
-
-### 1. Prerequisites
-Make sure you have [Python 3.11+](https://www.python.org/downloads/) installed.
-
-### 2. Backend Setup
-1. Open your terminal in the workspace directory:
-   ```bash
-   cd Skylark_drone
-   ```
-2. Install the required dependencies:
-   ```bash
-   pip install fastapi uvicorn openpyxl pandas requests
-   ```
-3. Launch the FastAPI server:
-   ```bash
-   python -m uvicorn backend.main:app --port 8000
-   ```
-   *You should see output indicating that the server is running on `http://127.0.0.1:8000`.*
-
-### 3. Frontend Setup
-* Simply double-click [`index.html`](file:///c:/Users/rashi/OneDrive/Desktop/Skylark_drone/index.html) (or drag it into your browser) to run the dashboard. It will automatically connect to your backend at `http://127.0.0.1:8000`.
+### 2. Frontend: Glassmorphic Single-Page Application (SPA)
+* A high-fidelity, responsive dashboard built with semantic HTML5, CSS3 variables, and vanilla JavaScript.
+* **State Management**: Fully reactive sidebar forms and tab selectors. It features smooth transitions and robust asynchronous request-handling states (loading spinners, error fallbacks).
 
 ---
 
-## 🔌 Connecting to Live Monday.com
+## 📋 Core Assumptions & Data Interpretations
 
-To synchronize your real Monday.com boards:
-
-1. **Get your API Token**:
-   * Click on your **Profile Picture (Avatar)** in the bottom-left of Monday.com.
-   * Go to **Developer** (or **Administration > API**).
-   * Copy the **Personal API Token**.
-2. **Get your Board IDs**:
-   * Open your Deals and Work Orders boards on Monday.com.
-   * The **Board ID** is the string of numbers at the very end of your browser's URL (e.g., `https://workspace.monday.com/boards/123456789`).
-3. **Connect**:
-   * Enter your API Token and Board IDs in the sidebar of the dashboard UI.
-   * Click **Save & Connect**. The BI Agent will test the connection and fetch live board items.
+* **Data Completeness**: Real-world spreadsheets contain missing records (e.g., empty `Closure Probability` or blank `Close Date (A)` values). We assume that empty records represent ongoing, untracked, or lead-stage deals and resolve them to default fallbacks (e.g., `0.0` value, `'Lead'` stage, `'Not Started'` status) instead of discarding the rows.
+* **Sector Grouping**: Raw data contains varied spelling and abbreviations (e.g., "agri", "Agri Sector", "agriculture"). We clean and map these into standardized categories (`Energy`, `Powerline`, `Mining`, `Solar`, `Wind`, `Infrastructure`, `Agriculture`) during ingestion.
+* **Currency Cleaning**: Currency symbols (₹, $), commas, and whitespace are programmatically stripped from text fields to extract clean floating-point numbers.
 
 ---
 
-## 📦 Pushing to GitHub
+## ⚖️ Engineering Trade-offs
 
-Follow these steps to upload the repository to GitHub:
-
-1. **Initialize Git Repository**:
-   ```bash
-   git init
-   ```
-2. **Create a `.gitignore`** to avoid uploading system cache, virtual environments, or temporary files:
-   Create a file named `.gitignore` with the following content:
-   ```text
-   __pycache__/
-   *.pyc
-   .env
-   .vscode/
-   .idea/
-   ```
-3. **Commit Your Files**:
-   ```bash
-   git add .
-   git commit -m "Initial commit: Monday.com BI Agent with Dual-Mode configuration"
-   ```
-4. **Push to GitHub**:
-   * Go to [GitHub](https://github.com) and create a new repository (e.g., `monday-bi-agent`). Do not add a README, license, or gitignore.
-   * Copy the remote repository URL and run:
-     ```bash
-     git remote add origin <YOUR_GITHUB_REPOSITORY_URL>
-     git branch -M main
-     git push -u origin main
-     ```
+* **Heuristic/Pandas Agent vs. LLM-only Parser**: An LLM-only agent is highly conversational but prone to mathematical calculation errors (hallucinations on sums, counts, and averages). We chose a structured Python `BIAgent` using Pandas for query computations to ensure 100% mathematical accuracy on financial metrics.
+* **Vanilla SPA vs. Modern Framework (React/Next.js)**: A React or Next.js build requires a node environment, bundlers, and compilation. By choosing vanilla HTML/CSS/JS, the project files remain lightweight, easy to run instantly by double-clicking `index.html`, and simple to deploy as static hosting on Vercel.
 
 ---
 
-## 🌐 Deployment Guide
+## 🤖 AI Tools & Co-Pilot Usage
 
-To make the application publicly accessible:
+This application was developed in partnership with **Antigravity (Google DeepMind)**, an agentic AI coding co-pilot.
+* **Code Generation & Optimization**: Utilized for structural file setups, FastAPI route patterns, and writing normalizer functions.
+* **Debugging**: Assisted in identifying path resolution errors (absolute path restrictions on remote Linux servers like Render) and resolving `.gitignore` issues.
 
-### 1. Backend Deployment (e.g., Render, Railway, or Fly.io)
-You can deploy the FastAPI backend to services like Render or Railway:
-* **Build Command**: `pip install -r requirements.txt` (generate this file by running `pip freeze > requirements.txt` before deploying)
-* **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-* **Note**: In [`backend/main.py`](file:///c:/Users/rashi/OneDrive/Desktop/Skylark_drone/backend/main.py), CORS is already configured with `allow_origins=["*"]`, enabling your frontend to safely make API requests.
+---
 
-### 2. Frontend Deployment (e.g., GitHub Pages, Netlify, or Vercel)
-You can deploy the frontend [`index.html`](file:///c:/Users/rashi/OneDrive/Desktop/Skylark_drone/index.html) static file:
-* **For GitHub Pages**: Just enable GitHub Pages in your repository settings under the `main` branch.
-* **Update API URL**: After deploying the backend, open your deployed [`index.html`](file:///c:/Users/rashi/OneDrive/Desktop/Skylark_drone/index.html) and update `API_HOST` to your deployed backend URL:
-  ```javascript
-  const API_HOST = "https://your-deployed-backend.onrender.com";
-  ```
+## ⚠️ Challenges Faced & Solutions
+
+1. **Local Path Portability (Windows vs. Linux)**
+   * *Challenge*: The server initially used hardcoded local paths (e.g. `c:/Users/...`) causing crashes (`500 Server Error`) when deployed to Render's Linux-based containers.
+   * *Solution*: Replaced absolute paths with dynamic relative paths resolved using Python's standard `os.path.dirname(os.path.abspath(__file__))`.
+2. **Git Ignore Filter Issues**
+   * *Challenge*: The `.gitignore` file originally blocked `*.xlsx` files, causing the local spreadsheets to be excluded from GitHub and leaving the remote server without fallback files.
+   * *Solution*: Commented out the global Excel exclusion in `.gitignore`, staged the spreadsheets, and pushed them to GitHub to enable successful remote container builds.
+3. **CORS Restrictions**
+   * *Challenge*: Browsers block fetch requests from the frontend domain to a different backend server domain.
+   * *Solution*: Implemented FastAPI's `CORSMiddleware` configured with `allow_origins=["*"]` to facilitate seamless cross-origin browser communication.
+
+---
+
+## 🔮 Future Scope & Potential Improvements
+
+1. **Hybrid LLM + Pandas Execution**: Integrate a lightweight LLM using LangChain/LlamaIndex to generate Pandas query scripts dynamically on complex user prompts, while keeping the execution layer in Python to maintain calculation correctness.
+2. **User Authentication**: Implement OAuth2 token exchange with Monday.com so users do not have to copy-paste their API key manually.
+3. **Real-time Webhook Syncing**: Add a Monday.com webhook receiver endpoint so that whenever a row is modified on a Monday.com board, the backend's internal DataFrame updates instantly without needing a full-board query.
+4. **Enhanced Data Visualizations**: Integrate Chart.js or D3.js on the frontend to replace static metric cards with interactive graphs, historical timeline plots, and funnel charts.
+
+---
+
+## ⚙️ Installation & Running
+
+### 1. Install dependencies
+```bash
+pip install fastapi uvicorn openpyxl pandas requests
+```
+
+### 2. Run backend
+```bash
+python -m uvicorn backend.main:app --port 8000
+```
+
+### 3. Open frontend
+* Open [`index.html`](file:///c:/Users/rashi/OneDrive/Desktop/Skylark_drone/index.html) directly in any web browser.
