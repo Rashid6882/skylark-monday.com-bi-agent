@@ -19,6 +19,9 @@ To ensure maximum versatility and easy evaluation, the application is designed t
 * **API Details:** 
   * Queries Monday.com's official GraphQL v2 API (`https://api.monday.com/v2`) using API version `2023-10`.
   * Automatically fetches live items, parses columns dynamically, maps the schema, and overrides the preloaded local data with real-time board records.
+* **Compliance Safeguards:**
+  * **Purely Read-Only**: The integration utilizes read-only GraphQL `query` calls (fetching columns and items) without any data-modifying mutations, protecting board integrity.
+  * **Zero Hardcoded Data**: Calculations are processed dynamically in memory using Pandas on the fetched GraphQL payload. There are no hardcoded CSV values in the chatbot engine or response structures.
 * **Fallback Strategy:** If the connection parameters are invalid or the board fetch fails, the agent falls back to the local Excel datasets to ensure uninterrupted operation.
 
 ---
