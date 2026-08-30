@@ -25,8 +25,9 @@ WOS_DF = None
 AI_AGENT = None
 
 # Default paths for Local Mock CSVs/XLSX
-DEALS_PATH = "c:/Users/rashi/OneDrive/Desktop/Skylark_drone/Deal funnel Data.xlsx"
-WOS_PATH = "c:/Users/rashi/OneDrive/Desktop/Skylark_drone/Work_Order_Tracker Data.xlsx"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEALS_PATH = os.path.join(BASE_DIR, "Deal funnel Data.xlsx")
+WOS_PATH = os.path.join(BASE_DIR, "Work_Order_Tracker Data.xlsx")
 
 class Settings(BaseModel):
     monday_token: Optional[str] = None
