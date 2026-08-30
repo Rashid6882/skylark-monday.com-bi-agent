@@ -60,15 +60,7 @@ graph TD
 * **Heuristic/Pandas Agent vs. LLM-only Parser**: An LLM-only agent is highly conversational but prone to mathematical calculation errors (hallucinations on sums, counts, and averages). We chose a structured Python `BIAgent` using Pandas for query computations to ensure 100% mathematical accuracy on financial metrics.
 * **Vanilla SPA vs. Modern Framework (React/Next.js)**: A React or Next.js build requires a node environment, bundlers, and compilation. By choosing vanilla HTML/CSS/JS, the project files remain lightweight, easy to run instantly by double-clicking `index.html`, and simple to deploy as static hosting on Vercel.
 
----
 
-## 🤖 AI Tools & Co-Pilot Usage
-
-This application was developed in partnership with **Antigravity (Google DeepMind)**, an agentic AI coding co-pilot.
-* **Code Generation & Optimization**: Utilized for structural file setups, FastAPI route patterns, and writing normalizer functions.
-* **Debugging**: Assisted in identifying path resolution errors (absolute path restrictions on remote Linux servers like Render) and resolving `.gitignore` issues.
-
----
 
 ## ⚠️ Challenges Faced & Solutions
 
